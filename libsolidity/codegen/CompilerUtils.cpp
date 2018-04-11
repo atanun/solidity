@@ -684,19 +684,17 @@ void CompilerUtils::convertType(
 			// clear for conversion to longer bytes
 			solAssert(targetTypeCategory == Type::Category::FixedBytes, "Invalid type conversion requested.");
 			FixedBytesType const& targetType = dynamic_cast<FixedBytesType const&>(_targetType);
-			if (targetType.numBytes() > typeOnStack.numBytes() || _cleanupNeeded)
+			if (typeOnStack.numBytes() == 0 || targetType.numBytes() == 0)
+				m_context << Instruction::POP << u256(0);
+			else if (targetType.numBytes() > typeOnStack.numBytes() || _cleanupNeeded)
 			{
-				if (typeOnStack.numBytes() == 0)
-					m_context << Instruction::POP << u256(0);
-				else
-				{
-					m_context << ((u256(1) << (256 - typeOnStack.numBytes() * 8)) - 1);
-					m_context << Instruction::NOT << Instruction::AND;
-				}
+				int bytes = min(typeOnStack.numBytes(), targetType.numBytes());
+				m_context << ((u256(1) << (256 - bytes * 8)) - 1);
+				m_context << Instruction::NOT << Instruction::AND;
 			}
 		}
-	}
 		break;
+	}
 	case Type::Category::Enum:
 		solAssert(_targetType == _typeOnStack || targetTypeCategory == Type::Category::Integer, "");
 		if (enumOverflowCheckPending)
