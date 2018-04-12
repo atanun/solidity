@@ -100,6 +100,10 @@ bool StaticAnalyzer::visit(Identifier const& _identifier)
 			if (var->isLocalVariable())
 				m_localVarUseCount[make_pair(var->id(), var)] += 1;
 		}
+
+	if (m_constructor && m_memberAccess && _identifier.name() == "this")
+		m_errorReporter.warning(_identifier.location(), "\"this\" used in constructor.");
+
 	return true;
 }
 
@@ -151,6 +155,8 @@ bool StaticAnalyzer::visit(ExpressionStatement const& _statement)
 bool StaticAnalyzer::visit(MemberAccess const& _memberAccess)
 {
 	bool const v050 = m_currentContract->sourceUnit().annotation().experimentalFeatures.count(ExperimentalFeature::V050);
+
+	m_memberAccess = true;
 
 	if (MagicType const* type = dynamic_cast<MagicType const*>(_memberAccess.expression().annotation().type.get()))
 	{
@@ -206,12 +212,12 @@ bool StaticAnalyzer::visit(MemberAccess const& _memberAccess)
 					);
 			}
 
-	if (m_constructor && m_currentContract)
-		if (ContractType const* type = dynamic_cast<ContractType const*>(_memberAccess.expression().annotation().type.get()))
-			if (type->contractDefinition() == *m_currentContract)
-				m_errorReporter.warning(_memberAccess.location(), "\"this\" used in constructor.");
-
 	return true;
+}
+
+void StaticAnalyzer::endVisit(MemberAccess const&)
+{
+	m_memberAccess = false;
 }
 
 bool StaticAnalyzer::visit(InlineAssembly const& _inlineAssembly)

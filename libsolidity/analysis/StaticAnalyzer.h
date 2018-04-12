@@ -63,6 +63,7 @@ private:
 	virtual bool visit(Identifier const& _identifier) override;
 	virtual bool visit(Return const& _return) override;
 	virtual bool visit(MemberAccess const& _memberAccess) override;
+	virtual void endVisit(MemberAccess const& _memberAccess) override;
 	virtual bool visit(InlineAssembly const& _inlineAssembly) override;
 	virtual bool visit(BinaryOperation const& _operation) override;
 	virtual bool visit(FunctionCall const& _functionCall) override;
@@ -87,6 +88,9 @@ private:
 
 	/// Flag that indicates a constructor.
 	bool m_constructor = false;
+
+	/// Flag that indicates a member access.
+	bool m_memberAccess = false;
 
 	/// Current contract.
 	ContractDefinition const* m_currentContract = nullptr;
