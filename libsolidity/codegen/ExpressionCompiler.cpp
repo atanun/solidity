@@ -1033,8 +1033,7 @@ bool ExpressionCompiler::visit(FunctionCall const& _functionCall)
 				m_context.appendInlineAssembly(R"({
 					let data_start := add(mem_ptr, 0x20)
 					let data := mload(data_start)
-					let mask := )" + mask + R"(
-					mstore(data_start, or(and(data, mask), and(selector, not(mask))))
+					mstore(data_start, or(and(data, )" + mask + R"(), selector))
 				})", {"mem_ptr", "selector"});
 				m_context << Instruction::POP;
 			}
